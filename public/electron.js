@@ -5,12 +5,24 @@ const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const isDev = require('electron-is-dev');
 
+let installExtension, REACT_DEVELOPER_TOOLS;
+
+if (isDev) {
+    const devTools = require("electron-devtools-installer");
+    installExtension = devTools.default;
+    REACT_DEVELOPER_TOOLS = devTools.REACT_DEVELOPER_TOOLS;
+}
+
+if (require("electron-squirrel-startup")) {
+    app.quit();
+}
+
 let mainWindow;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 900,
-        height: 680,
+        width: 500,
+        height: 700,
         webPreferences: {
             nodeIntegration: true
         }
@@ -25,7 +37,18 @@ function createWindow() {
     mainWindow.on('closed', () => mainWindow = null);
 }
 
-app.on('ready', createWindow);
+// app.on('ready', createWindow);
+
+
+app.whenReady().then(() => {
+    createWindow();
+
+    if (isDev) {
+        installExtension(REACT_DEVELOPER_TOOLS)
+            .then(name => console.log(`Added Extension:  ${name}`))
+            .catch(error => console.log(`An error occurred: , ${error}`));
+    }
+});
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
@@ -36,5 +59,6 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
     if (mainWindow === null) {
         createWindow();
+
     }
 });
